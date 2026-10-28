@@ -59,7 +59,7 @@ func parseRequestLine(b []byte) (*RequestLine, int, error) {
 	rl := &RequestLine{
 		Method:        string(parts[0]),
 		RequestTarget: string(parts[1]),
-		HttpVersion:   string(httpParts[2]),
+		HttpVersion:   string(httpParts[1]),
 	}
 
 	return rl, read, nil
@@ -77,6 +77,7 @@ outer:
 		case StateInit:
 			rl, n, err := parseRequestLine(data[read:])
 			if err != nil {
+				r.state = StateError
 				return 0, err
 			}
 			if n == 0 {
@@ -85,6 +86,8 @@ outer:
 
 			r.RequestLine = *rl
 			read += n
+			r.state = StateDone
+			break outer
 		case StateDone:
 			break outer
 		}
